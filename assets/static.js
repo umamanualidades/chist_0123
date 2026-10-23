@@ -1,0 +1,13 @@
+
+document.querySelectorAll('.kk-star-ratings .kksr-stars a').forEach(a=>{a.removeAttribute('href');a.tabIndex=-1;});
+document.querySelectorAll('.kk-star-ratings').forEach(el=>{el.title='Valoraciones históricas';const legend=el.querySelector('.kksr-legend');const fuel=el.querySelector('.kksr-fuel');const match=legend&&legend.textContent.match(/\(([\d.,]+)%/);if(fuel&&match)fuel.style.width=Number(match[1].replace(',','.'))+'%';});
+const menu=document.getElementById('myTopbutton');if(menu){menu.setAttribute('role','button');menu.tabIndex=0;menu.setAttribute('aria-label','Abrir menú');menu.setAttribute('aria-expanded','false');menu.addEventListener('click',()=>menu.setAttribute('aria-expanded',String(menu.classList.contains('menu_is_opened'))));menu.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();menu.click();}});}
+document.querySelectorAll('img').forEach((im,i)=>{if(i>1&&!im.hasAttribute('loading'))im.loading='lazy';im.decoding='async';});
+const filter=document.getElementById('filter-jokes');
+if(filter){filter.value=new URLSearchParams(location.search).get('q')||'';const items=[...document.querySelectorAll('#joke-index li')];const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');const refresh=()=>{const q=norm(filter.value);let n=0;items.forEach(li=>{li.hidden=!norm(li.textContent).includes(q);if(!li.hidden)n++;});document.getElementById('filter-count').textContent=n+' colecciones';};filter.addEventListener('input',refresh);refresh();}
+if(location.pathname==='/'&&new URLSearchParams(location.search).has('s')){location.replace('/indice/?q='+encodeURIComponent(new URLSearchParams(location.search).get('s')));}
+
+const randomBox=document.getElementById('random-joke');
+if(randomBox){let manifest,last=-1;const cache=new Map();const button=document.getElementById('another-joke');button.disabled=true;
+async function show(){button.disabled=true;try{let n=Math.floor(Math.random()*manifest.total);if(n===last)n=(n+1)%manifest.total;last=n;const part=Math.floor(n/manifest.chunk_size);if(!cache.has(part)){const r=await fetch('/assets/chistes/'+String(part).padStart(4,'0')+'.json');if(!r.ok)throw Error();cache.set(part,await r.json());}const joke=cache.get(part)[n%manifest.chunk_size];randomBox.textContent=joke.text;document.getElementById('joke-source').href=joke.url;}catch(e){randomBox.textContent='Elige una colección de chistes en el índice.';}finally{button.disabled=false;}}
+fetch('/assets/chistes/manifest.json').then(r=>{if(!r.ok)throw Error();return r.json();}).then(data=>{manifest=data;show();}).catch(()=>{randomBox.textContent='Elige una colección de chistes en el índice.';});button.addEventListener('click',show);}
